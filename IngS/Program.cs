@@ -42,6 +42,7 @@ class DetectorDeCriaturas
         if (edad < 200 && nombre.Length > 0 && char.ToLower(nombre[0]) == 'v')
             return new HombreNormal(nombre, edad);
         return new Persona(nombre, edad); 
+
     }
 }
 
