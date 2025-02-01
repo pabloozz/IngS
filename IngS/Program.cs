@@ -1,70 +1,53 @@
 ﻿using System;
 
-class Persona
+namespace ConsoleApp1
 {
-    public string Nombre { get; }
-    public int Edad { get; }
-
-    public Persona(string nombre, int edad)
+    internal class Program
     {
-        Nombre = nombre.Trim();
-        Edad = edad;
-    }
-
-    public virtual bool PuedeEntrar() => false; 
-}
-
-class HombreLobo : Persona
-{
-    public HombreLobo(string nombre, int edad) : base(nombre, edad) { }
-}
-
-class Vampiro : Persona
-{
-    public Vampiro(string nombre, int edad) : base(nombre, edad) { }
-}
-
-class HombreNormal : Persona
-{
-    public HombreNormal(string nombre, int edad) : base(nombre, edad) { }
-
-    public override bool PuedeEntrar() => true; 
-}
-
-class DetectorDeCriaturas
-{
-    public static Persona ClasificarPersona(string nombre, int edad)
-    {
-        if (edad > 200)
-            return new Vampiro(nombre, edad);
-        if (edad < 200 && nombre.Length > 0 && char.ToLower(nombre[0]) == 'h')
-            return new HombreLobo(nombre, edad);
-        if (edad < 200 && nombre.Length > 0 && char.ToLower(nombre[0]) == 'v')
-            return new HombreNormal(nombre, edad);
-        return new Persona(nombre, edad); 
-
-    }
-}
-
-class Programa
-{
-    static void Main()
-    {
-        Console.Write("Ingrese el nombre: ");
-        string nombre = Console.ReadLine();
-
-        Console.Write("Ingrese la edad: ");
-        if (!int.TryParse(Console.ReadLine(), out int edad))
+        static void Main(string[] args)
         {
-            Console.WriteLine("Edad inválida.");
-            return;
+            while (true)
+            {
+                try
+                {
+                    Console.WriteLine("Buen día, por favor, ingrese su nombre o escriba 'salir' para terminar: ");
+                    string nombre = Console.ReadLine().Trim(); // Eliminamos los espacios en blanco
+
+                    if (nombre.ToLower() == "salir")
+                    {
+                        Console.WriteLine("Saliendo del programa...");
+                        break;
+                    }
+
+                    Console.WriteLine("Buen día, por favor, ingrese su edad: ");
+                    if (!int.TryParse(Console.ReadLine(), out int edad) || edad < 0)
+                    {
+                        Console.WriteLine("Edad no válida. Intente de nuevo.");
+                        continue;
+                    }
+
+                    if (string.IsNullOrEmpty(nombre))
+                    {
+                        Console.WriteLine("El nombre no puede estar vacío.");
+                        continue;
+                    }
+
+                    if (edad >= 200)
+                        Console.WriteLine($"Acceso denegado a {nombre}. Tenga mucho cuidado, puede ser un Vampiro.");
+                    else if (nombre.ToLower().StartsWith("h"))
+                        Console.WriteLine($"Acceso denegado a {nombre}. Tenga mucho cuidado, puede ser un Hombre Lobo.");
+                    else if (nombre.ToLower().StartsWith("v") && edad < 120)
+                        Console.WriteLine($"Acceso permitido a {nombre}. Es un humano.");
+                    else if (edad > 120 && edad < 200)
+                        Console.WriteLine($"Acceso denegado a {nombre}. Lo más probable es que sea un Hombre Lobo.");
+                    else
+                        Console.WriteLine($"Acceso permitido a {nombre}. Es probable que sea un humano.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("Ocurrió un error en el programa: " + ex.Message);
+                }
+            }
         }
-
-        Persona persona = DetectorDeCriaturas.ClasificarPersona(nombre, edad);
-
-        if (persona.PuedeEntrar())
-            Console.WriteLine("Acceso permitido. Bienvenido a la convención.");
-        else
-            Console.WriteLine("Acceso denegado. No se permiten vampiros ni hombres lobo.");
     }
 }
