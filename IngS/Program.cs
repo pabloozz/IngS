@@ -1,53 +1,106 @@
 ﻿using System;
+using System.IO;
 
-namespace ConsoleApp1
+class Persona
 {
-    internal class Program
+    public string Nombre { get; }
+    public int Edad { get; }
+
+    public Persona(string nombre, int edad)
     {
-        static void Main(string[] args)
+        Nombre = nombre.Trim();
+        Edad = edad;
+    }
+
+    public virtual bool PuedeEntrar() => true; // Por defecto, los humanos pueden entrar
+}
+
+class HombreLobo : Persona
+{
+    public HombreLobo(string nombre, int edad) : base(nombre, edad) { }
+
+    public override bool PuedeEntrar() => false;
+}
+
+class Vampiro : Persona
+{
+    public Vampiro(string nombre, int edad) : base(nombre, edad) { }
+
+    public override bool PuedeEntrar() => false;
+}
+
+class DetectorDeCriaturas
+{
+    public static Persona ClasificarPersona(string nombre, int edad)
+    {
+        if (edad >= 200)
+            return new Vampiro(nombre, edad);
+        if (edad >= 120 || nombre.ToLower().StartsWith("h"))
+            return new HombreLobo(nombre, edad);
+
+        return new Persona(nombre, edad); // En cualquier otro caso, es humano
+    }
+}
+
+class Programa
+{
+    static void Main()
+    {
+        string archivoHistorial = "historial_accesos.txt";
+
+        while (true)
         {
-            while (true)
+            Console.Write("Ingrese el nombre (o escriba 'salir' para terminar): ");
+            string nombre = Console.ReadLine().Trim();
+
+            if (nombre.ToLower() == "salir")
             {
-                try
-                {
-                    Console.WriteLine("Buen día, por favor, ingrese su nombre o escriba 'salir' para terminar: ");
-                    string nombre = Console.ReadLine().Trim(); // Eliminamos los espacios en blanco
-
-                    if (nombre.ToLower() == "salir")
-                    {
-                        Console.WriteLine("Saliendo del programa...");
-                        break;
-                    }
-
-                    Console.WriteLine("Buen día, por favor, ingrese su edad: ");
-                    if (!int.TryParse(Console.ReadLine(), out int edad) || edad < 0)
-                    {
-                        Console.WriteLine("Edad no válida. Intente de nuevo.");
-                        continue;
-                    }
-
-                    if (string.IsNullOrEmpty(nombre))
-                    {
-                        Console.WriteLine("El nombre no puede estar vacío.");
-                        continue;
-                    }
-
-                    if (edad >= 200)
-                        Console.WriteLine($"Acceso denegado a {nombre}. Tenga mucho cuidado, puede ser un Vampiro.");
-                    else if (nombre.ToLower().StartsWith("h"))
-                        Console.WriteLine($"Acceso denegado a {nombre}. Tenga mucho cuidado, puede ser un Hombre Lobo.");
-                    else if (nombre.ToLower().StartsWith("v") && edad < 120)
-                        Console.WriteLine($"Acceso permitido a {nombre}. Es un humano.");
-                    else if (edad > 120 && edad < 200)
-                        Console.WriteLine($"Acceso denegado a {nombre}. Lo más probable es que sea un Hombre Lobo.");
-                    else
-                        Console.WriteLine($"Acceso permitido a {nombre}. Es probable que sea un humano.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("Ocurrió un error en el programa: " + ex.Message);
-                }
+                Console.WriteLine("📌 Saliendo del programa...");
+                break;
             }
+
+            if (string.IsNullOrEmpty(nombre))
+            {
+                Console.WriteLine("⚠ El nombre no puede estar vacío. Intente de nuevo.");
+                continue;
+            }
+
+            int edad;
+            while (true) // Bucle para validar la edad
+            {
+                Console.Write("Ingrese la edad: ");
+                if (int.TryParse(Console.ReadLine(), out edad) && edad >= 0)
+                    break;
+                Console.WriteLine("⚠ Edad inválida. Intente de nuevo.");
+            }
+
+            Persona persona = DetectorDeCriaturas.ClasificarPersona(nombre, edad);
+            string resultado;
+
+            if (persona.PuedeEntrar())
+                resultado = $"✅ Acceso permitido a {nombre}. Bienvenido.";
+            else
+                resultado = $"❌ Acceso denegado a {nombre}. Puede ser una criatura peligrosa.";
+
+            Console.WriteLine(resultado);
+            GuardarHistorial(archivoHistorial, nombre, edad, resultado);
+
+            Console.WriteLine(new string('-', 50)); // Línea divisoria para mejor lectura
+        }
+    }
+
+    static void GuardarHistorial(string archivo, string nombre, int edad, string resultado)
+    {
+        try
+        {
+            using (StreamWriter sw = new StreamWriter(archivo, true))
+            {
+                sw.WriteLine($"{DateTime.Now} | Nombre: {nombre}, Edad: {edad} - {resultado}");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("⚠ No se pudo guardar el historial: " + ex.Message);
         }
     }
 }
